@@ -417,7 +417,8 @@
         const modalCloseButton = document.getElementById('modalCloseButton');
 
         // ** AQUI YA HE PEGADO LA URL DE TU APLICACIÓN WEB DE GOOGLE APPS SCRIPT PERSONAL **
-        let webAppUrl = 'https://script.google.com/macros/s/AKfycbKyBn7xqSBDK85Xt1WXf7oQqu2fmjt0TIZWt-ziM6ic_TLOmsMWI0y1_XkUKNC_IBSnFpQ/exec'; 
+        // Esta URL ya no se usa con google.script.run, pero la dejo por si necesitas volver a fetch.
+        // let webAppUrl = 'https://script.google.com/macros/s/AKfycbKyBn7xqSBDK85Xt1WXf7oQqu2fmjt0TIZWt-ziM6ic_TLOmsMWI0y1_XkUKNC_IBSnFpQ/exec'; 
 
         // ** Funciones de Utilidad **
 
@@ -580,38 +581,33 @@
             totalQuestionsDisplay.textContent = questions.length; // Muestra el total de preguntas
             progressBar.style.width = '100%'; // Completa la barra de progreso
 
-            // *** LLAMADA PARA ENVIAR DATOS FINALES A GOOGLE SHEETS ***
+            // *** LLAMADA PARA ENVIAR DATOS FINALES A GOOGLE SHEETS USANDO google.script.run ***
             sendFinalDataToGoogleSheets(userName, score, incorrectAnswers);
         }
 
-        // *** NUEVA FUNCIÓN PARA ENVIAR DATOS FINALES ***
-        async function sendFinalDataToGoogleSheets(userName, score, incorrectAnswers) {
+        // *** NUEVA FUNCIÓN PARA ENVIAR DATOS USANDO google.script.run ***
+        function sendFinalDataToGoogleSheets(userName, score, incorrectAnswers) {
             const dataToSend = {
-                action: 'finish', // Indicamos al Apps Script que esta es la acción de finalizar
-                userName: userName, // El nombre de usuario para encontrar la fila
+                action: 'finish', 
+                userName: userName, 
                 score: score,
                 incorrectAnswers: incorrectAnswers
             };
 
-            try {
-                const response = await fetch(webAppUrl, {
-                    method: 'POST',
-                    mode: 'cors',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(dataToSend)
-                });
-
-                const result = await response.json();
-                if (result.status === 'success' && result.action === 'finished') {
-                    console.log('Datos finales enviados a Google Sheets correctamente.');
-                } else {
-                    console.error('Error al enviar datos finales a Google Sheets:', result.message);
-                }
-            } catch (error) {
-                console.error('Error de red o al procesar la solicitud final:', error);
-            }
+            // Llamada directa a la función 'handleQuizAction' en Apps Script
+            google.script.run
+                .withSuccessHandler((result) => { // Lo que sucede si la llamada es exitosa
+                    if (result.status === 'success' && result.action === 'finished') {
+                        console.log('Datos finales enviados a Google Sheets correctamente.');
+                    } else {
+                        console.error('Error al enviar datos finales a Google Sheets:', result.message);
+                    }
+                })
+                .withFailureHandler((error) => { // Lo que sucede si hay un error en la llamada
+                    console.error('Error al enviar datos finales con Apps Script (google.script.run):', error.message || error);
+                    showModal('Error de conexión al guardar los resultados. Intenta de nuevo.'); // Muestra un modal de error
+                })
+                .handleQuizAction(dataToSend); // Nombre de la función en Apps Script a llamar
         }
 
 
@@ -624,32 +620,27 @@
         });
 
         // Evento para el botón "Iniciar Test"
-        startButton.addEventListener('click', async () => { // Añade 'async' aquí
+        startButton.addEventListener('click', () => { // Ya no es 'async' aquí
             userName = userNameInput.value.trim(); 
             if (userName) {
-                try {
-                    // Envía el nombre de usuario al Apps Script para iniciar la sesión
-                    const response = await fetch(webAppUrl, {
-                        method: 'POST',
-                        mode: 'cors',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ action: 'start', userName: userName }) // Indicamos la acción 'start'
-                    });
-                    const result = await response.json();
-
-                    if (result.status === 'success') {
-                        console.log('Sesión iniciada:', result.message);
-                        welcomeScreen.classList.add('hidden');
-                        gameScreen.classList.remove('hidden');
-                        userNameDisplay.textContent = `¡Hola, ${userName}!`;
-                        loadQuestion();
-                    } else {
-                        showModal('Error al iniciar la sesión: ' + (result.message || 'Desconocido'));
-                    }
-                } catch (error) {
-                    console.error('Error al iniciar la sesión con Apps Script:', error);
-                    showModal('Error de conexión al iniciar el juego. Intenta de nuevo.');
-                }
+                // Envía el nombre de usuario al Apps Script para iniciar la sesión
+                google.script.run
+                    .withSuccessHandler((result) => { // Lo que sucede si la llamada es exitosa
+                        if (result.status === 'success') {
+                            console.log('Sesión iniciada:', result.message);
+                            welcomeScreen.classList.add('hidden');
+                            gameScreen.classList.remove('hidden');
+                            userNameDisplay.textContent = `¡Hola, ${userName}!`;
+                            loadQuestion();
+                        } else {
+                            showModal('Error al iniciar la sesión: ' + (result.message || 'Desconocido'));
+                        }
+                    })
+                    .withFailureHandler((error) => { // Lo que sucede si hay un error en la llamada
+                        console.error('Error al iniciar la sesión con Apps Script (google.script.run):', error.message || error);
+                        showModal('Error de conexión al iniciar el juego. Intenta de nuevo.');
+                    })
+                    .handleQuizAction({ action: 'start', userName: userName }); // Nombre de la función en Apps Script a llamar
             } else {
                 showModal('Por favor, ingresa tu nombre para comenzar.');
             }
