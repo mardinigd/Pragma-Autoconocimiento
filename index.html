@@ -416,19 +416,8 @@
         const modalMessage = document.getElementById('modalMessage');
         const modalCloseButton = document.getElementById('modalCloseButton');
 
-        // ** Variables de Estado del Juego **
-        let currentQuestionIndex = 0; // Controla qué pregunta se está mostrando
-        let score = 0; // Lleva la cuenta de las respuestas correctas
-        let userName = ''; // Almacena el nombre ingresado por el usuario
-        let selectedOptionButton = null; // Referencia al botón de opción que el usuario seleccionó
-        let incorrectAnswers = []; // Lista para guardar las preguntas respondidas incorrectamente
-
-        // Contexto de audio para generar sonidos (de correcto/incorrecto)
-        let audioContext;
-
-        // ** AQUI DEBES PEGAR LA URL DE TU APLICACIÓN WEB DE GOOGLE APPS SCRIPT **
-        // Asegúrate de que esta URL sea la que obtuviste al desplegar tu script.
-        let webAppUrl = 'https://script.google.com/a/macros/pragma.com.co/s/AKfycbxzcVoi7Wa7swrA0QatMGR_3e1ofgooxQWMHcvjqySYBvKRmSu93phloDitD4EgYI6t/exec'; 
+        // ** AQUI YA HE PEGADO LA URL DE TU APLICACIÓN WEB DE GOOGLE APPS SCRIPT PERSONAL **
+        let webAppUrl = 'https://script.google.com/macros/s/AKfycbKyBn7xqSBDK85Xt1WXf7oQqu2fmjt0TIZWt-ziM6ic_TLOmsMWI0y1_XkUKNC_IBSnFpQ/exec'; 
 
         // ** Funciones de Utilidad **
 
@@ -689,7 +678,7 @@
                 incorrectAnswers.forEach((answer, index) => {
                     const reviewItem = document.createElement('div');
                     reviewItem.classList.add('bg-gray-50', 'p-4', 'rounded-lg', 'border', 'border-gray-200');
-                    reviewItem.innerHTML = `f
+                    reviewItem.innerHTML = `
                         <p class="font-semibold text-lg mb-2">Pregunta ${index + 1}: ${answer.question}</p>
                         <p class="text-red-600 mb-1">Tu respuesta: ${answer.userAnswer} <span class="font-semibold">(Incorrecta)</span></p>
                         <p class="text-blue-600 mb-2">Respuesta correcta: ${answer.correctAnswer}</p>
